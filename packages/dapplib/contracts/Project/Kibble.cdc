@@ -80,11 +80,11 @@ pub contract Kibble: FungibleToken {
             // 1) Take away 'amount' balance from this Vault
             self.balance = self.balance - amount;
             // 2) emit TokensWithdrawn
-            emit TokensWithdrawn(amount: amount, from: )
+            emit TokensWithdrawn(amount: amount, from: self.owner?.address)
             // 3) return a new Vault with balance == 'amount'
             let vault <- create Vault(balance: amount);
 
-            return vault as @FungibleToken.Vault
+            return <- vault
         }
 
         // deposit
@@ -108,7 +108,7 @@ pub contract Kibble: FungibleToken {
             self.balance = self.balance + vault.balance
 
             // 3) emit TokensDeposited
-            emit TokensDeposited(amount: vault.balance, to: self.address )
+            emit TokensDeposited(amount: vault.balance, to: self.owner?.address )
 
             // 4) Set 'vault's balance to 0.0
             vault.balance = 0.0
@@ -151,10 +151,14 @@ pub contract Kibble: FungibleToken {
             // return <-create Vault(balance: 0.0)
 
             // 1) Add a pre-condition to make sure 'amount' is greater than 0.0
-            if (amount < 0){ return <- createEmptyVault()}
+            
+            pre{
+                amount > 0.0:
+                    "we have a problem"
+            }
         
             // 2) Update Kibble.totalSupply by adding 'amount'
-            self.totalSupply = self.totalSupply + amount;
+            Kibble.totalSupply = Kibble.totalSupply + amount;
             
             // 3) emit TokensMinted
             emit TokensMinted(amount: amount)
