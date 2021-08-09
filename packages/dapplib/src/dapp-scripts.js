@@ -44,45 +44,6 @@ module.exports = class DappScripts {
 		`;
 	}
 
-	static kittyitemsmarket_read_collection_ids() {
-		return fcl.script`
-				import KittyItemsMarket from 0x01cf0e2f2f715450
-				
-				// This script returns an array of all the NFT IDs for sale 
-				// in an account's SaleCollection.
-				
-				pub fun main(marketCollectionAddress: Address): [UInt64] {
-				    let marketCollectionRef = getAccount(marketCollectionAddress)
-				        .getCapability<&KittyItemsMarket.SaleCollection{KittyItemsMarket.SalePublic}>(
-				            KittyItemsMarket.MarketPublicPath
-				        )
-				        .borrow()
-				        ?? panic("Could not borrow market collection from market address")
-				    
-				    return marketCollectionRef.getIDs()
-				}
-		`;
-	}
-
-	static kittyitemsmarket_read_collection_length() {
-		return fcl.script`
-				import KittyItemsMarket from 0x01cf0e2f2f715450
-				
-				// This script returns the size of an account's SaleCollection.
-				
-				pub fun main(marketCollectionAddress: Address): Int {
-				    let marketCollectionRef = getAccount(marketCollectionAddress)
-				        .getCapability<&KittyItemsMarket.SaleCollection{KittyItemsMarket.SalePublic}>(
-				             KittyItemsMarket.MarketPublicPath
-				        )
-				        .borrow()
-				        ?? panic("Could not borrow market collection from market address")
-				    
-				    return marketCollectionRef.getIDs().length
-				}
-		`;
-	}
-
 	static kittyitems_read_collection_ids() {
 		return fcl.script`
 				// TODO:
@@ -159,6 +120,45 @@ module.exports = class DappScripts {
 				
 				pub fun main(): UInt64 {    
 				    return KittyItems.totalSupply
+				}
+		`;
+	}
+
+	static kittyitemsmarket_read_collection_ids() {
+		return fcl.script`
+				import KittyItemsMarket from 0x01cf0e2f2f715450
+				
+				// This script returns an array of all the NFT IDs for sale 
+				// in an account's SaleCollection.
+				
+				pub fun main(marketCollectionAddress: Address): [UInt64] {
+				    let marketCollectionRef = getAccount(marketCollectionAddress)
+				        .getCapability<&KittyItemsMarket.SaleCollection{KittyItemsMarket.SalePublic}>(
+				            KittyItemsMarket.MarketPublicPath
+				        )
+				        .borrow()
+				        ?? panic("Could not borrow market collection from market address")
+				    
+				    return marketCollectionRef.getIDs()
+				}
+		`;
+	}
+
+	static kittyitemsmarket_read_collection_length() {
+		return fcl.script`
+				import KittyItemsMarket from 0x01cf0e2f2f715450
+				
+				// This script returns the size of an account's SaleCollection.
+				
+				pub fun main(marketCollectionAddress: Address): Int {
+				    let marketCollectionRef = getAccount(marketCollectionAddress)
+				        .getCapability<&KittyItemsMarket.SaleCollection{KittyItemsMarket.SalePublic}>(
+				             KittyItemsMarket.MarketPublicPath
+				        )
+				        .borrow()
+				        ?? panic("Could not borrow market collection from market address")
+				    
+				    return marketCollectionRef.getIDs().length
 				}
 		`;
 	}
