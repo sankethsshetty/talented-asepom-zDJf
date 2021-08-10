@@ -68,21 +68,14 @@ module.exports = class DappScripts {
 		`;
 	}
 
-	static kittyitems_read_collection_length() {
+	static kittyitems_read_kitty_items_supply() {
 		return fcl.script`
-				import NonFungibleToken from 0x01cf0e2f2f715450
 				import KittyItems from 0x01cf0e2f2f715450
 				
-				// This script returns the size of an account's KittyItems collection.
+				// This scripts returns the number of KittyItems currently in existence.
 				
-				pub fun main(address: Address): Int {
-				    let account = getAccount(address)
-				
-				    let collectionRef = account.getCapability(KittyItems.CollectionPublicPath)
-				                            .borrow<&{NonFungibleToken.CollectionPublic}>()
-				                            ?? panic("Could not borrow capability from public collection")
-				    
-				    return collectionRef.getIDs().length
+				pub fun main(): UInt64 {    
+				    return KittyItems.totalSupply
 				}
 		`;
 	}
@@ -108,18 +101,6 @@ module.exports = class DappScripts {
 				        ?? panic("No such itemID in that collection")
 				
 				    return kittyItem.typeID
-				}
-		`;
-	}
-
-	static kittyitems_read_kitty_items_supply() {
-		return fcl.script`
-				import KittyItems from 0x01cf0e2f2f715450
-				
-				// This scripts returns the number of KittyItems currently in existence.
-				
-				pub fun main(): UInt64 {    
-				    return KittyItems.totalSupply
 				}
 		`;
 	}
@@ -159,6 +140,25 @@ module.exports = class DappScripts {
 				        ?? panic("Could not borrow market collection from market address")
 				    
 				    return marketCollectionRef.getIDs().length
+				}
+		`;
+	}
+
+	static kittyitems_read_collection_length() {
+		return fcl.script`
+				import NonFungibleToken from 0x01cf0e2f2f715450
+				import KittyItems from 0x01cf0e2f2f715450
+				
+				// This script returns the size of an account's KittyItems collection.
+				
+				pub fun main(address: Address): Int {
+				    let account = getAccount(address)
+				
+				    let collectionRef = account.getCapability(KittyItems.CollectionPublicPath)
+				                            .borrow<&{NonFungibleToken.CollectionPublic}>()
+				                            ?? panic("Could not borrow capability from public collection")
+				    
+				    return collectionRef.getIDs().length
 				}
 		`;
 	}
