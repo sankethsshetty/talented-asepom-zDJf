@@ -9,7 +9,7 @@ pub contract KibbleSplit {
     pub event TokensReceived(amount: UFix64)
 
 
-    pub fun split(kibbleVault: @Kibble.Vault, receiverRef1: &FungibleToken.Receiver, receiverRef2: &FungibleToken.Receiver){
+    pub fun split(kibbleVault: @Kibble.Vault, receiverRef1: &Kibble.Vault{FungibleToken.Receiver}, receiverRef2: &Kibble.Vault{FungibleToken.Receiver}){
         
         let amount = kibbleVault.balance
         emit TokensReceived(amount: amount)

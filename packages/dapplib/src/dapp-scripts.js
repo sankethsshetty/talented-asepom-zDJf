@@ -7,25 +7,6 @@ const fcl = require("@onflow/fcl");
 
 module.exports = class DappScripts {
 
-	static kittyitemsmarket_read_collection_length() {
-		return fcl.script`
-				import KittyItemsMarket from 0x01cf0e2f2f715450
-				
-				// This script returns the size of an account's SaleCollection.
-				
-				pub fun main(marketCollectionAddress: Address): Int {
-				    let marketCollectionRef = getAccount(marketCollectionAddress)
-				        .getCapability<&KittyItemsMarket.SaleCollection{KittyItemsMarket.SalePublic}>(
-				             KittyItemsMarket.MarketPublicPath
-				        )
-				        .borrow()
-				        ?? panic("Could not borrow market collection from market address")
-				    
-				    return marketCollectionRef.getIDs().length
-				}
-		`;
-	}
-
 	static kittyitemsmarket_read_collection_ids() {
 		return fcl.script`
 				import KittyItemsMarket from 0x01cf0e2f2f715450
@@ -42,6 +23,25 @@ module.exports = class DappScripts {
 				        ?? panic("Could not borrow market collection from market address")
 				    
 				    return marketCollectionRef.getIDs()
+				}
+		`;
+	}
+
+	static kittyitemsmarket_read_collection_length() {
+		return fcl.script`
+				import KittyItemsMarket from 0x01cf0e2f2f715450
+				
+				// This script returns the size of an account's SaleCollection.
+				
+				pub fun main(marketCollectionAddress: Address): Int {
+				    let marketCollectionRef = getAccount(marketCollectionAddress)
+				        .getCapability<&KittyItemsMarket.SaleCollection{KittyItemsMarket.SalePublic}>(
+				             KittyItemsMarket.MarketPublicPath
+				        )
+				        .borrow()
+				        ?? panic("Could not borrow market collection from market address")
+				    
+				    return marketCollectionRef.getIDs().length
 				}
 		`;
 	}
@@ -70,23 +70,22 @@ module.exports = class DappScripts {
 		`;
 	}
 
-	static kibble_get_balance() {
+	static kittyitems_read_collection_length() {
 		return fcl.script`
-				import Kibble from 0x01cf0e2f2f715450
-				import FungibleToken from 0xee82856bf20e2aa6
+				import NonFungibleToken from 0x01cf0e2f2f715450
+				import KittyItems from 0x01cf0e2f2f715450
 				
-				// This script returns an account's Kibble balance.
+				// This script returns the size of an account's KittyItems collection.
 				
-				pub fun main(address: Address): UFix64 {
+				pub fun main(address: Address): Int {
 				    let account = getAccount(address)
+				
+				    let collectionRef = account.getCapability(KittyItems.CollectionPublicPath)
+				                            .borrow<&{NonFungibleToken.CollectionPublic}>()
+				                            ?? panic("Could not borrow capability from public collection")
 				    
-				    let vaultRef = account.getCapability(Kibble.BalancePublicPath)
-				                    .borrow<&Kibble.Vault{FungibleToken.Balance}>()
-				                    ?? panic("Could not borrow Balance reference to the Vault")
-				
-				    return vaultRef.balance
+				    return collectionRef.getIDs().length
 				}
-				
 		`;
 	}
 
@@ -115,6 +114,38 @@ module.exports = class DappScripts {
 		`;
 	}
 
+	static kittyitems_read_kitty_items_supply() {
+		return fcl.script`
+				import KittyItems from 0x01cf0e2f2f715450
+				
+				// This scripts returns the number of KittyItems currently in existence.
+				
+				pub fun main(): UInt64 {    
+				    return KittyItems.totalSupply
+				}
+		`;
+	}
+
+	static kibble_get_balance() {
+		return fcl.script`
+				import Kibble from 0x01cf0e2f2f715450
+				import FungibleToken from 0xee82856bf20e2aa6
+				
+				// This script returns an account's Kibble balance.
+				
+				pub fun main(address: Address): UFix64 {
+				    let account = getAccount(address)
+				    
+				    let vaultRef = account.getCapability(Kibble.BalancePublicPath)
+				                    .borrow<&Kibble.Vault{FungibleToken.Balance}>()
+				                    ?? panic("Could not borrow Balance reference to the Vault")
+				
+				    return vaultRef.balance
+				}
+				
+		`;
+	}
+
 	static kibble_get_supply() {
 		return fcl.script`
 				import Kibble from 0x01cf0e2f2f715450
@@ -128,37 +159,6 @@ module.exports = class DappScripts {
 				    log(supply)
 				
 				    return supply
-				}
-		`;
-	}
-
-	static kittyitems_read_collection_length() {
-		return fcl.script`
-				import NonFungibleToken from 0x01cf0e2f2f715450
-				import KittyItems from 0x01cf0e2f2f715450
-				
-				// This script returns the size of an account's KittyItems collection.
-				
-				pub fun main(address: Address): Int {
-				    let account = getAccount(address)
-				
-				    let collectionRef = account.getCapability(KittyItems.CollectionPublicPath)
-				                            .borrow<&{NonFungibleToken.CollectionPublic}>()
-				                            ?? panic("Could not borrow capability from public collection")
-				    
-				    return collectionRef.getIDs().length
-				}
-		`;
-	}
-
-	static kittyitems_read_kitty_items_supply() {
-		return fcl.script`
-				import KittyItems from 0x01cf0e2f2f715450
-				
-				// This scripts returns the number of KittyItems currently in existence.
-				
-				pub fun main(): UInt64 {    
-				    return KittyItems.totalSupply
 				}
 		`;
 	}

@@ -6,8 +6,8 @@ transaction(amount: UFix64, recepient1: Address, recepient2: Address) {
 
     // A reference to the signer's stored vault
     let vaultRef: &Kibble.Vault
-    let receiverRef1: &FungibleToken.Receiver
-    let receiverRef2: &FungibleToken.Receiver
+    let receiverRef1: &Kibble.Vault{FungibleToken.Receiver}
+    let receiverRef2: &Kibble.Vault{FungibleToken.Receiver}
 
     prepare(signer: AuthAccount) {
         
@@ -16,11 +16,11 @@ transaction(amount: UFix64, recepient1: Address, recepient2: Address) {
 			?? panic("Could not borrow reference to the owner's Vault!")
 
         self.receiverRef1 = getAccount(recepient1).getCapability(Kibble.ReceiverPublicPath)
-                        .borrow<&{FungibleToken.Receiver}>()
+                        .borrow<&Kibble.Vault{FungibleToken.Receiver}>()
 			?? panic("Could not borrow reference to the owner's Vault!")
 
         self.receiverRef2 = getAccount(recepient2).getCapability(Kibble.ReceiverPublicPath)
-                        .borrow<&{FungibleToken.Receiver}>()
+                        .borrow<&Kibble.Vault{FungibleToken.Receiver}>()
             ?? panic("Could not borrow reference to the owner's Vault!")
 
         
