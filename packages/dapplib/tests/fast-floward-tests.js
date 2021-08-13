@@ -22,7 +22,7 @@ describe('Flow Dapp Tests', async () => {
 				signer: config.accounts[1],
 			};
 			let testData3 = {
-				signer: config.accounts[3],
+				signer: config.accounts[2],
 			};
 
 			await DappLib.kibbleSetupAccount(testData1);
@@ -187,7 +187,7 @@ describe('Flow Dapp Tests', async () => {
 		it(`send tokens to splitter and have it split between 2 accounts`, async () => {
 			testData = {
 				signer: config.accounts[0],
-				amount: 4.0,
+				amount: '4.0',
 				recepient1: config.accounts[1],
 				recepient2: config.accounts[2],
 			};
@@ -216,13 +216,13 @@ describe('Flow Dapp Tests', async () => {
 
 			assert.equal(
 				res1.result,
-				26.0,
-				'There should be 26.0 Kibble left'
+				16.0,
+				'There should be 16.0 Kibble left'
 			);
 			assert.equal(
 				res2.result,
-				2.0,
-				'There should be 2.0 kibbles'
+				12.0,
+				'There should be 12.0 kibbles'
 			);
 			assert.equal(
 				res3.result,
@@ -596,14 +596,14 @@ describe('Flow Dapp Tests', async () => {
 			// 5) assert the result from step 3) equals 5.0
 			assert.equal(
 				bal0.result,
-				5.0,
-				'Admin balance not 5.0'
+				1.0,
+				'Admin balance not 1.0'
 			);
 			// 6) assert the result from step 4) equals 25.0
 			assert.equal(
 				bal1.result,
-				25.0,
-				'User balance not 25.0'
+				27.0,
+				'User balance not 37.0'
 			);
 		});
 	});

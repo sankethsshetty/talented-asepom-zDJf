@@ -7,43 +7,6 @@ const fcl = require("@onflow/fcl");
 
 module.exports = class DappTransactions {
 
-	static KibbleSplit_split() {
-		return fcl.transaction`
-				import FungibleToken from 0xee82856bf20e2aa6
-				import Kibble from 0x01cf0e2f2f715450
-				import KibbleSplit from 0x01cf0e2f2f715450
-				
-				transaction(amount: UFix64, recepient1: Address, recepient2: Address) {
-				
-				    // A reference to the signer's stored vault
-				    let vaultRef: &Kibble.Vault
-				    let receiverRef1: &Kibble.Vault{FungibleToken.Receiver}
-				    let receiverRef2: &Kibble.Vault{FungibleToken.Receiver}
-				
-				    prepare(signer: AuthAccount) {
-				        
-				        // Get a reference to the signer's stored vault
-				        self.vaultRef = signer.borrow<&Kibble.Vault>(from: Kibble.VaultStoragePath)
-							?? panic("Could not borrow reference to the owner's Vault!")
-				
-				        self.receiverRef1 = getAccount(recepient1).getCapability(Kibble.ReceiverPublicPath)
-				                        .borrow<&Kibble.Vault{FungibleToken.Receiver}>()
-							?? panic("Could not borrow reference to the owner's Vault!")
-				
-				        self.receiverRef2 = getAccount(recepient2).getCapability(Kibble.ReceiverPublicPath)
-				                        .borrow<&Kibble.Vault{FungibleToken.Receiver}>()
-				            ?? panic("Could not borrow reference to the owner's Vault!")
-				    }
-				
-				    execute {
-				        let vault<- self.vaultRef.withdraw(amount: amount) as! @Kibble.Vault
-				
-				        KibbleSplit.split(kibbleVault: <- vault, receiverRef1: self.receiverRef1, receiverRef2: self.receiverRef2)
-				    }
-				}
-		`;
-	}
-
 	static kibble_mint_tokens() {
 		return fcl.transaction`
 				import FungibleToken from 0xee82856bf20e2aa6
@@ -68,6 +31,43 @@ module.exports = class DappTransactions {
 				        self.tokenReceiver.deposit(from: <-mintedVault)
 				    }
 				}
+		`;
+	}
+
+	static kibble_setup_account() {
+		return fcl.transaction`
+				import FungibleToken from 0xee82856bf20e2aa6
+				import Kibble from 0x01cf0e2f2f715450
+				
+				// This transaction is a template for a transaction
+				// to add a Vault resource to their account
+				// so that they can use the Kibble
+				
+				transaction {
+				
+				    prepare(signer: AuthAccount) {
+				
+				        if signer.borrow<&Kibble.Vault>(from: Kibble.VaultStoragePath) == nil {
+				            // Create a new Kibble Vault and put it in storage
+				            signer.save(<-Kibble.createEmptyVault(), to: Kibble.VaultStoragePath)
+				
+				            // Create a public capability to the Vault that only exposes
+				            // the deposit function through the Receiver interface
+				            signer.link<&Kibble.Vault{FungibleToken.Receiver}>(
+				                Kibble.ReceiverPublicPath,
+				                target: Kibble.VaultStoragePath
+				            )
+				
+				            // Create a public capability to the Vault that only exposes
+				            // the balance field through the Balance interface
+				            signer.link<&Kibble.Vault{FungibleToken.Balance}>(
+				                Kibble.BalancePublicPath,
+				                target: Kibble.VaultStoragePath
+				            )
+				        }
+				    }
+				}
+				
 		`;
 	}
 
@@ -110,43 +110,6 @@ module.exports = class DappTransactions {
 				        self.receiverRef.deposit(from: <-sentVault)
 				    }
 				}
-		`;
-	}
-
-	static kibble_setup_account() {
-		return fcl.transaction`
-				import FungibleToken from 0xee82856bf20e2aa6
-				import Kibble from 0x01cf0e2f2f715450
-				
-				// This transaction is a template for a transaction
-				// to add a Vault resource to their account
-				// so that they can use the Kibble
-				
-				transaction {
-				
-				    prepare(signer: AuthAccount) {
-				
-				        if signer.borrow<&Kibble.Vault>(from: Kibble.VaultStoragePath) == nil {
-				            // Create a new Kibble Vault and put it in storage
-				            signer.save(<-Kibble.createEmptyVault(), to: Kibble.VaultStoragePath)
-				
-				            // Create a public capability to the Vault that only exposes
-				            // the deposit function through the Receiver interface
-				            signer.link<&Kibble.Vault{FungibleToken.Receiver}>(
-				                Kibble.ReceiverPublicPath,
-				                target: Kibble.VaultStoragePath
-				            )
-				
-				            // Create a public capability to the Vault that only exposes
-				            // the balance field through the Balance interface
-				            signer.link<&Kibble.Vault{FungibleToken.Balance}>(
-				                Kibble.BalancePublicPath,
-				                target: Kibble.VaultStoragePath
-				            )
-				        }
-				    }
-				}
-				
 		`;
 	}
 
@@ -196,6 +159,34 @@ module.exports = class DappTransactions {
 				        // Purchase the Kitty Item
 				        self.saleCollection.purchase(itemID: itemID, recipient: self.buyerKittyItemsCollection, buyTokens: <-vault)
 				    }
+				}
+				
+		`;
+	}
+
+	static kittyitemsmarket_remove_market_item() {
+		return fcl.transaction`
+				import KittyItemsMarket from 0x01cf0e2f2f715450
+				
+				// This transaction allows a SaleCollection owner to remove a Kitty Item
+				// from sale
+				
+				transaction(itemID: UInt64) {
+				
+				  let saleCollection: &KittyItemsMarket.SaleCollection
+				
+				  prepare(signer: AuthAccount) {
+				      // Borrows the signer's SaleCollection
+				      self.saleCollection = signer.borrow<&KittyItemsMarket.SaleCollection>(from: KittyItemsMarket.MarketStoragePath) 
+				          ?? panic("Could not borrow the signer's SaleCollection")
+				  }
+				
+				  execute {
+				      // Unlist Kitty Items from sale
+				      self.saleCollection.unlistSale(itemID: itemID)
+				
+				      log("Unlisted Kitty Item for sale")
+				  }
 				}
 				
 		`;
@@ -283,31 +274,40 @@ module.exports = class DappTransactions {
 		`;
 	}
 
-	static kittyitemsmarket_remove_market_item() {
+	static KibbleSplit_split() {
 		return fcl.transaction`
-				import KittyItemsMarket from 0x01cf0e2f2f715450
+				import FungibleToken from 0xee82856bf20e2aa6
+				import Kibble from 0x01cf0e2f2f715450
+				import KibbleSplit from 0x01cf0e2f2f715450
 				
-				// This transaction allows a SaleCollection owner to remove a Kitty Item
-				// from sale
+				transaction(amount: UFix64, recepient1: Address, recepient2: Address) {
 				
-				transaction(itemID: UInt64) {
+				    // A reference to the signer's stored vault
+				    let vaultRef: &Kibble.Vault
+				    let receiverRef1: &Kibble.Vault{FungibleToken.Receiver}
+				    let receiverRef2: &Kibble.Vault{FungibleToken.Receiver}
 				
-				  let saleCollection: &KittyItemsMarket.SaleCollection
+				    prepare(signer: AuthAccount) {
+				        
+				        // Get a reference to the signer's stored vault
+				        self.vaultRef = signer.borrow<&Kibble.Vault>(from: Kibble.VaultStoragePath)
+							?? panic("Could not borrow reference to the owner's Vault!")
 				
-				  prepare(signer: AuthAccount) {
-				      // Borrows the signer's SaleCollection
-				      self.saleCollection = signer.borrow<&KittyItemsMarket.SaleCollection>(from: KittyItemsMarket.MarketStoragePath) 
-				          ?? panic("Could not borrow the signer's SaleCollection")
-				  }
+				        self.receiverRef1 = getAccount(recepient1).getCapability(Kibble.ReceiverPublicPath)
+				                        .borrow<&Kibble.Vault{FungibleToken.Receiver}>()
+							?? panic("Could not borrow reference to the recepient1's Vault!")
 				
-				  execute {
-				      // Unlist Kitty Items from sale
-				      self.saleCollection.unlistSale(itemID: itemID)
+				        self.receiverRef2 = getAccount(recepient2).getCapability(Kibble.ReceiverPublicPath)
+				                        .borrow<&Kibble.Vault{FungibleToken.Receiver}>()
+				            ?? panic("Could not borrow reference to the recepient2's Vault!")
+				    }
 				
-				      log("Unlisted Kitty Item for sale")
-				  }
+				    execute {
+				        let vault<- self.vaultRef.withdraw(amount: amount) as! @Kibble.Vault
+				
+				        KibbleSplit.split(kibbleVault: <- vault, receiverRef1: self.receiverRef1, receiverRef2: self.receiverRef2)
+				    }
 				}
-				
 		`;
 	}
 
