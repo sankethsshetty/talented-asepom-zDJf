@@ -165,11 +165,11 @@ module.exports = class DappLib {
 					value: data.amount,
 					type: t.UFix64,
 				},
-				recipient1: {
+				recepient1: {
 					value: data.recepient1,
 					type: t.Address,
 				},
-				recipient2: {
+				recepient2: {
 					value: data.recepient2,
 					type: t.Address,
 				},

@@ -7,6 +7,43 @@ const fcl = require("@onflow/fcl");
 
 module.exports = class DappScripts {
 
+	static kibble_get_balance() {
+		return fcl.script`
+				import Kibble from 0x01cf0e2f2f715450
+				import FungibleToken from 0xee82856bf20e2aa6
+				
+				// This script returns an account's Kibble balance.
+				
+				pub fun main(address: Address): UFix64 {
+				    let account = getAccount(address)
+				    
+				    let vaultRef = account.getCapability(Kibble.BalancePublicPath)
+				                    .borrow<&Kibble.Vault{FungibleToken.Balance}>()
+				                    ?? panic("Could not borrow Balance reference to the Vault")
+				
+				    return vaultRef.balance
+				}
+				
+		`;
+	}
+
+	static kibble_get_supply() {
+		return fcl.script`
+				import Kibble from 0x01cf0e2f2f715450
+				
+				// This script returns the total amount of Kibble currently in existence.
+				
+				pub fun main(): UFix64 {
+				
+				    let supply = Kibble.totalSupply
+				
+				    log(supply)
+				
+				    return supply
+				}
+		`;
+	}
+
 	static kittyitemsmarket_read_collection_ids() {
 		return fcl.script`
 				import KittyItemsMarket from 0x01cf0e2f2f715450
@@ -122,43 +159,6 @@ module.exports = class DappScripts {
 				
 				pub fun main(): UInt64 {    
 				    return KittyItems.totalSupply
-				}
-		`;
-	}
-
-	static kibble_get_balance() {
-		return fcl.script`
-				import Kibble from 0x01cf0e2f2f715450
-				import FungibleToken from 0xee82856bf20e2aa6
-				
-				// This script returns an account's Kibble balance.
-				
-				pub fun main(address: Address): UFix64 {
-				    let account = getAccount(address)
-				    
-				    let vaultRef = account.getCapability(Kibble.BalancePublicPath)
-				                    .borrow<&Kibble.Vault{FungibleToken.Balance}>()
-				                    ?? panic("Could not borrow Balance reference to the Vault")
-				
-				    return vaultRef.balance
-				}
-				
-		`;
-	}
-
-	static kibble_get_supply() {
-		return fcl.script`
-				import Kibble from 0x01cf0e2f2f715450
-				
-				// This script returns the total amount of Kibble currently in existence.
-				
-				pub fun main(): UFix64 {
-				
-				    let supply = Kibble.totalSupply
-				
-				    log(supply)
-				
-				    return supply
 				}
 		`;
 	}

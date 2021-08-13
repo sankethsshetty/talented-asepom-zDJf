@@ -21,9 +21,13 @@ describe('Flow Dapp Tests', async () => {
 			let testData2 = {
 				signer: config.accounts[1],
 			};
+			let testData3 = {
+				signer: config.accounts[3],
+			};
 
 			await DappLib.kibbleSetupAccount(testData1);
 			await DappLib.kibbleSetupAccount(testData2);
+			await DappLib.kibbleSetupAccount(testData3);
 
 			await DappLib.kittyItemsSetupAccount(testData1);
 			await DappLib.kittyItemsSetupAccount(testData2);
@@ -177,6 +181,53 @@ describe('Flow Dapp Tests', async () => {
 				res3.result,
 				30.0,
 				'Incorrect total number of Kibble'
+			);
+		});
+
+		it(`send tokens to splitter and have it split between 2 accounts`, async () => {
+			testData = {
+				signer: config.accounts[0],
+				amount: 4.0,
+				recepient1: config.accounts[1],
+				recepient2: config.accounts[2],
+			};
+
+			let testData1 = {
+				address: config.accounts[0],
+			};
+			let testData2 = {
+				address: config.accounts[1],
+			};
+			let testData3 = {
+				address: config.accounts[2],
+			};
+
+			await DappLib.kibbleSplit(testData);
+
+			let res1 = await DappLib.kibbleGetBalance(
+				testData1
+			);
+			let res2 = await DappLib.kibbleGetBalance(
+				testData2
+			);
+			let res3 = await DappLib.kibbleGetBalance(
+				testData3
+			);
+
+			assert.equal(
+				res1.result,
+				26.0,
+				'There should be 26.0 Kibble left'
+			);
+			assert.equal(
+				res2.result,
+				2.0,
+				'There should be 2.0 kibbles'
+			);
+			assert.equal(
+				res3.result,
+				2.0,
+				'There should be 2.0 kibbles'
 			);
 		});
 

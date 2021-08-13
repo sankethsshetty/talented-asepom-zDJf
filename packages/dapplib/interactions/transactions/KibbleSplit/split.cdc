@@ -22,8 +22,6 @@ transaction(amount: UFix64, recepient1: Address, recepient2: Address) {
         self.receiverRef2 = getAccount(recepient2).getCapability(Kibble.ReceiverPublicPath)
                         .borrow<&Kibble.Vault{FungibleToken.Receiver}>()
             ?? panic("Could not borrow reference to the owner's Vault!")
-
-        
     }
 
     execute {
