@@ -7,33 +7,6 @@ const fcl = require("@onflow/fcl");
 
 module.exports = class DappTransactions {
 
-	static kibble_mint_tokens() {
-		return fcl.transaction`
-				import FungibleToken from 0xee82856bf20e2aa6
-				import Kibble from 0x01cf0e2f2f715450
-				
-				transaction(recipient: Address, amount: UFix64) {
-				    let tokenMinter: &Kibble.Minter
-				    let tokenReceiver: &{FungibleToken.Receiver}
-				
-				    prepare(signer: AuthAccount) {
-				        self.tokenMinter = signer.borrow<&Kibble.Minter>(from: Kibble.MinterStoragePath)
-				                                ?? panic("Signer is not the token admin")
-				
-				        self.tokenReceiver = getAccount(recipient).getCapability(Kibble.ReceiverPublicPath)
-				                                .borrow<&{FungibleToken.Receiver}>()
-				                                ?? panic("Unable to borrow receiver reference")
-				    }
-				
-				    execute {
-				        let mintedVault <- self.tokenMinter.mintTokens(amount: amount)
-				
-				        self.tokenReceiver.deposit(from: <-mintedVault)
-				    }
-				}
-		`;
-	}
-
 	static kibble_setup_account() {
 		return fcl.transaction`
 				import FungibleToken from 0xee82856bf20e2aa6
@@ -68,6 +41,33 @@ module.exports = class DappTransactions {
 				    }
 				}
 				
+		`;
+	}
+
+	static kibble_mint_tokens() {
+		return fcl.transaction`
+				import FungibleToken from 0xee82856bf20e2aa6
+				import Kibble from 0x01cf0e2f2f715450
+				
+				transaction(recipient: Address, amount: UFix64) {
+				    let tokenMinter: &Kibble.Minter
+				    let tokenReceiver: &{FungibleToken.Receiver}
+				
+				    prepare(signer: AuthAccount) {
+				        self.tokenMinter = signer.borrow<&Kibble.Minter>(from: Kibble.MinterStoragePath)
+				                                ?? panic("Signer is not the token admin")
+				
+				        self.tokenReceiver = getAccount(recipient).getCapability(Kibble.ReceiverPublicPath)
+				                                .borrow<&{FungibleToken.Receiver}>()
+				                                ?? panic("Unable to borrow receiver reference")
+				    }
+				
+				    execute {
+				        let mintedVault <- self.tokenMinter.mintTokens(amount: amount)
+				
+				        self.tokenReceiver.deposit(from: <-mintedVault)
+				    }
+				}
 		`;
 	}
 
@@ -113,69 +113,40 @@ module.exports = class DappTransactions {
 		`;
 	}
 
-	static kittyitems_mint_kitty_item() {
+	static KibbleSplit_split() {
 		return fcl.transaction`
-				// TODO: 
-				// Add imports here, then do steps 1, 2, and 3.
-				import KittyItems from 0x01cf0e2f2f715450
-				import NonFungibleToken from 0x01cf0e2f2f715450
+				import FungibleToken from 0xee82856bf20e2aa6
+				import Kibble from 0x01cf0e2f2f715450
+				import KibbleSplit from 0x01cf0e2f2f715450
 				
-				// This transction uses the NFTMinter resource to mint a new NFT.
-				//
-				// It must be signed by the account that has the minter resource
-				// stored at path 'KittyItems.MinterStoragePath'.
+				transaction(amount: UFix64, recepient1: Address, recepient2: Address) {
 				
-				transaction(recipient: Address, typeID: UInt64) {
-				    
-				    // local variable for storing the minter reference
-				    let minter: &KittyItems.NFTMinter
-				    // local variable for a reference to the recipient's Kitty Items Collection
-				    let receiver: &{NonFungibleToken.CollectionPublic}
+				    // A reference to the signer's stored vault
+				    let vaultRef: &Kibble.Vault
+				    let receiverRef1: &FungibleToken.Receiver
+				    let receiverRef2: &FungibleToken.Receiver
 				
 				    prepare(signer: AuthAccount) {
+				        
+				        // Get a reference to the signer's stored vault
+				        self.vaultRef = signer.borrow<&Kibble.Vault>(from: Kibble.VaultStoragePath)
+							?? panic("Could not borrow reference to the owner's Vault!")
 				
-				        // 1) borrow a reference to the NFTMinter resource in the signer's storage
-				        self.minter = signer.borrow<&KittyItems.NFTMinter>(from: KittyItems.MinterStoragePath )?? panic("we have a problem borrowing the NFT Minter")
-				        
-				        
-				        // 2) borrow a public reference to the recipient's Kitty Items Collection
-				        self.receiver = getAccount(recipient).getCapability(KittyItems.CollectionPublicPath)
-				                            .borrow<&{NonFungibleToken.CollectionPublic}>()
-				                            ?? panic("We cant borrow ref to kitty collection")
+				        self.receiverRef1 = getAccount(recepient1).getCapability(Kibble.ReceiverPublicPath)
+				                        .borrow<&{FungibleToken.Receiver}>()
+							?? panic("Could not borrow reference to the owner's Vault!")
+				
+				        self.receiverRef2 = getAccount(recepient2).getCapability(Kibble.ReceiverPublicPath)
+				                        .borrow<&{FungibleToken.Receiver}>()
+				            ?? panic("Could not borrow reference to the owner's Vault!")
+				
 				        
 				    }
 				
 				    execute {
+				        let vault<- self.vaultRef.withdraw(amount: amount) as! @Kibble.Vault
 				
-				        // 3) mint the NFT and deposit it into the recipient's Collection
-				        self.minter.mintNFT(recipient: self.receiver, typeID: typeID)
-				        
-				    }
-				}
-		`;
-	}
-
-	static kittyitems_setup_account() {
-		return fcl.transaction`
-				import NonFungibleToken from 0x01cf0e2f2f715450
-				import KittyItems from 0x01cf0e2f2f715450
-				
-				// This transaction configures an account to hold Kitty Items.
-				
-				transaction {
-				    prepare(signer: AuthAccount) {
-				        // if the account doesn't already have a collection
-				        if signer.borrow<&KittyItems.Collection>(from: KittyItems.CollectionStoragePath) == nil {
-				
-				            // create a new empty collection
-				            let collection <- KittyItems.createEmptyCollection()
-				            
-				            // save it to the account
-				            signer.save(<-collection, to: KittyItems.CollectionStoragePath)
-				
-				            // create a public capability for the collection
-				            signer.link<&KittyItems.Collection{NonFungibleToken.CollectionPublic, KittyItems.KittyItemsCollectionPublic}>(KittyItems.CollectionPublicPath, target: KittyItems.CollectionStoragePath)
-				        }
+				        KibbleSplit.split(kibbleVault: <- vault, receiverRef1: self.receiverRef1, receiverRef2: self.receiverRef2)
 				    }
 				}
 		`;
@@ -217,6 +188,48 @@ module.exports = class DappTransactions {
 				
 				
 				       
+				    }
+				}
+		`;
+	}
+
+	static kittyitems_mint_kitty_item() {
+		return fcl.transaction`
+				// TODO: 
+				// Add imports here, then do steps 1, 2, and 3.
+				import KittyItems from 0x01cf0e2f2f715450
+				import NonFungibleToken from 0x01cf0e2f2f715450
+				
+				// This transction uses the NFTMinter resource to mint a new NFT.
+				//
+				// It must be signed by the account that has the minter resource
+				// stored at path 'KittyItems.MinterStoragePath'.
+				
+				transaction(recipient: Address, typeID: UInt64) {
+				    
+				    // local variable for storing the minter reference
+				    let minter: &KittyItems.NFTMinter
+				    // local variable for a reference to the recipient's Kitty Items Collection
+				    let receiver: &{NonFungibleToken.CollectionPublic}
+				
+				    prepare(signer: AuthAccount) {
+				
+				        // 1) borrow a reference to the NFTMinter resource in the signer's storage
+				        self.minter = signer.borrow<&KittyItems.NFTMinter>(from: KittyItems.MinterStoragePath )?? panic("we have a problem borrowing the NFT Minter")
+				        
+				        
+				        // 2) borrow a public reference to the recipient's Kitty Items Collection
+				        self.receiver = getAccount(recipient).getCapability(KittyItems.CollectionPublicPath)
+				                            .borrow<&{NonFungibleToken.CollectionPublic}>()
+				                            ?? panic("We cant borrow ref to kitty collection")
+				        
+				    }
+				
+				    execute {
+				
+				        // 3) mint the NFT and deposit it into the recipient's Collection
+				        self.minter.mintNFT(recipient: self.receiver, typeID: typeID)
+				        
 				    }
 				}
 		`;
@@ -273,6 +286,32 @@ module.exports = class DappTransactions {
 		`;
 	}
 
+	static kittyitems_setup_account() {
+		return fcl.transaction`
+				import NonFungibleToken from 0x01cf0e2f2f715450
+				import KittyItems from 0x01cf0e2f2f715450
+				
+				// This transaction configures an account to hold Kitty Items.
+				
+				transaction {
+				    prepare(signer: AuthAccount) {
+				        // if the account doesn't already have a collection
+				        if signer.borrow<&KittyItems.Collection>(from: KittyItems.CollectionStoragePath) == nil {
+				
+				            // create a new empty collection
+				            let collection <- KittyItems.createEmptyCollection()
+				            
+				            // save it to the account
+				            signer.save(<-collection, to: KittyItems.CollectionStoragePath)
+				
+				            // create a public capability for the collection
+				            signer.link<&KittyItems.Collection{NonFungibleToken.CollectionPublic, KittyItems.KittyItemsCollectionPublic}>(KittyItems.CollectionPublicPath, target: KittyItems.CollectionStoragePath)
+				        }
+				    }
+				}
+		`;
+	}
+
 	static kittyitemsmarket_sell_market_item() {
 		return fcl.transaction`
 				import KittyItemsMarket from 0x01cf0e2f2f715450
@@ -297,6 +336,9 @@ module.exports = class DappTransactions {
 				      log("Listed Kitty Items for sale")
 				  }
 				}
+				
+				
+				
 				
 		`;
 	}

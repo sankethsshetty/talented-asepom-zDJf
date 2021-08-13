@@ -117,6 +117,35 @@ export default class FastFlowardHarness extends LitElement {
 					</account-widget>
 				</action-card>
 
+				<action-card
+					title="DAY 3: Creative Kibble Split Tokens"
+					description="Split Kibble from the signer -> recipient1 and recipient12"
+					action="kibbleSplit"
+					method="post"
+					fields="signer amount recepient1 recepient2"
+				>
+					<account-widget
+						field="signer"
+						label="Signer"
+					>
+					</account-widget>
+					<text-widget
+						field="amount"
+						label="Amount"
+						placeholder="30.0"
+					></text-widget>
+					<account-widget
+						field="recepient1"
+						label="Recepient1"
+					>
+					</account-widget>
+					<account-widget
+						field="recepient2"
+						label="Recepient2"
+					>
+					</account-widget>
+				</action-card>
+
 				<!-- DAY 3 -->
 
 				<action-card

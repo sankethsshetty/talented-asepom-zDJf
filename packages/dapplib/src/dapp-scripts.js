@@ -7,39 +7,41 @@ const fcl = require("@onflow/fcl");
 
 module.exports = class DappScripts {
 
-	static kibble_get_balance() {
+	static kittyitemsmarket_read_collection_length() {
 		return fcl.script`
-				import Kibble from 0x01cf0e2f2f715450
-				import FungibleToken from 0xee82856bf20e2aa6
+				import KittyItemsMarket from 0x01cf0e2f2f715450
 				
-				// This script returns an account's Kibble balance.
+				// This script returns the size of an account's SaleCollection.
 				
-				pub fun main(address: Address): UFix64 {
-				    let account = getAccount(address)
+				pub fun main(marketCollectionAddress: Address): Int {
+				    let marketCollectionRef = getAccount(marketCollectionAddress)
+				        .getCapability<&KittyItemsMarket.SaleCollection{KittyItemsMarket.SalePublic}>(
+				             KittyItemsMarket.MarketPublicPath
+				        )
+				        .borrow()
+				        ?? panic("Could not borrow market collection from market address")
 				    
-				    let vaultRef = account.getCapability(Kibble.BalancePublicPath)
-				                    .borrow<&Kibble.Vault{FungibleToken.Balance}>()
-				                    ?? panic("Could not borrow Balance reference to the Vault")
-				
-				    return vaultRef.balance
+				    return marketCollectionRef.getIDs().length
 				}
-				
 		`;
 	}
 
-	static kibble_get_supply() {
+	static kittyitemsmarket_read_collection_ids() {
 		return fcl.script`
-				import Kibble from 0x01cf0e2f2f715450
+				import KittyItemsMarket from 0x01cf0e2f2f715450
 				
-				// This script returns the total amount of Kibble currently in existence.
+				// This script returns an array of all the NFT IDs for sale 
+				// in an account's SaleCollection.
 				
-				pub fun main(): UFix64 {
-				
-				    let supply = Kibble.totalSupply
-				
-				    log(supply)
-				
-				    return supply
+				pub fun main(marketCollectionAddress: Address): [UInt64] {
+				    let marketCollectionRef = getAccount(marketCollectionAddress)
+				        .getCapability<&KittyItemsMarket.SaleCollection{KittyItemsMarket.SalePublic}>(
+				            KittyItemsMarket.MarketPublicPath
+				        )
+				        .borrow()
+				        ?? panic("Could not borrow market collection from market address")
+				    
+				    return marketCollectionRef.getIDs()
 				}
 		`;
 	}
@@ -68,15 +70,23 @@ module.exports = class DappScripts {
 		`;
 	}
 
-	static kittyitems_read_kitty_items_supply() {
+	static kibble_get_balance() {
 		return fcl.script`
-				import KittyItems from 0x01cf0e2f2f715450
+				import Kibble from 0x01cf0e2f2f715450
+				import FungibleToken from 0xee82856bf20e2aa6
 				
-				// This scripts returns the number of KittyItems currently in existence.
+				// This script returns an account's Kibble balance.
 				
-				pub fun main(): UInt64 {    
-				    return KittyItems.totalSupply
+				pub fun main(address: Address): UFix64 {
+				    let account = getAccount(address)
+				    
+				    let vaultRef = account.getCapability(Kibble.BalancePublicPath)
+				                    .borrow<&Kibble.Vault{FungibleToken.Balance}>()
+				                    ?? panic("Could not borrow Balance reference to the Vault")
+				
+				    return vaultRef.balance
 				}
+				
 		`;
 	}
 
@@ -105,41 +115,19 @@ module.exports = class DappScripts {
 		`;
 	}
 
-	static kittyitemsmarket_read_collection_ids() {
+	static kibble_get_supply() {
 		return fcl.script`
-				import KittyItemsMarket from 0x01cf0e2f2f715450
+				import Kibble from 0x01cf0e2f2f715450
 				
-				// This script returns an array of all the NFT IDs for sale 
-				// in an account's SaleCollection.
+				// This script returns the total amount of Kibble currently in existence.
 				
-				pub fun main(marketCollectionAddress: Address): [UInt64] {
-				    let marketCollectionRef = getAccount(marketCollectionAddress)
-				        .getCapability<&KittyItemsMarket.SaleCollection{KittyItemsMarket.SalePublic}>(
-				            KittyItemsMarket.MarketPublicPath
-				        )
-				        .borrow()
-				        ?? panic("Could not borrow market collection from market address")
-				    
-				    return marketCollectionRef.getIDs()
-				}
-		`;
-	}
-
-	static kittyitemsmarket_read_collection_length() {
-		return fcl.script`
-				import KittyItemsMarket from 0x01cf0e2f2f715450
+				pub fun main(): UFix64 {
 				
-				// This script returns the size of an account's SaleCollection.
+				    let supply = Kibble.totalSupply
 				
-				pub fun main(marketCollectionAddress: Address): Int {
-				    let marketCollectionRef = getAccount(marketCollectionAddress)
-				        .getCapability<&KittyItemsMarket.SaleCollection{KittyItemsMarket.SalePublic}>(
-				             KittyItemsMarket.MarketPublicPath
-				        )
-				        .borrow()
-				        ?? panic("Could not borrow market collection from market address")
-				    
-				    return marketCollectionRef.getIDs().length
+				    log(supply)
+				
+				    return supply
 				}
 		`;
 	}
@@ -159,6 +147,18 @@ module.exports = class DappScripts {
 				                            ?? panic("Could not borrow capability from public collection")
 				    
 				    return collectionRef.getIDs().length
+				}
+		`;
+	}
+
+	static kittyitems_read_kitty_items_supply() {
+		return fcl.script`
+				import KittyItems from 0x01cf0e2f2f715450
+				
+				// This scripts returns the number of KittyItems currently in existence.
+				
+				pub fun main(): UInt64 {    
+				    return KittyItems.totalSupply
 				}
 		`;
 	}

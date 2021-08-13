@@ -146,6 +146,43 @@ module.exports = class DappLib {
 		};
 	}
 
+	// kibbleSplit
+	// calls transaction/KibbleSplit/split.cdc
+	//
+	// signer/proposer/authorizer: data.signer
+	//
+	static async kibbleSplit(data) {
+		let result = await Blockchain.post(
+			{
+				config: DappLib.getConfig(),
+				roles: {
+					signer: data.signer,
+				},
+			},
+			'KibbleSplit_split',
+			{
+				amount: {
+					value: data.amount,
+					type: t.UFix64,
+				},
+				recipient1: {
+					value: data.recepient1,
+					type: t.Address,
+				},
+				recipient2: {
+					value: data.recepient2,
+					type: t.Address,
+				},
+			}
+		);
+
+		return {
+			type: DappLib.DAPP_RESULT_TX_HASH,
+			label: 'Transaction Hash',
+			result: result.callData.transactionId,
+		};
+	}
+
 	/********** KITTY ITEMS **********/
 
 	// kittyItemsSetupAccount
